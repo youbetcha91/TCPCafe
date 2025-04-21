@@ -1,6 +1,5 @@
 #include "Nodes/NodeManager.h"
 #include "Nodes/Node.h"
-#include "Nodes/Pin.h"
 
 #include <iostream>
 #include <algorithm>
@@ -9,6 +8,7 @@
 #include "Nodes/PrintNode.h"
 #include "Nodes/PrintNode.h"
 #include "Nodes/ButtonNode.h"
+#include "Nodes/ToggleNode.h"
 #include "Nodes/StringNode.h"
 #include "Nodes/ConcatNode.h"
 #include "Nodes/AddNode.h"
@@ -17,6 +17,8 @@
 #include "Nodes/TCPClientNode.h"
 #include "Nodes/TCPServerNode.h"
 #include "Nodes/TimerNode.h"
+#include "Nodes/BooleanOperatorNode.h"
+#include "Nodes/BooleanDisplayNode.h"
 
 int NodeManager::globalId = 100;
 using json = nlohmann::json;
@@ -105,6 +107,14 @@ void NodeManager::SpawnNodesFromFile()
                     {
                         spawnedNode =  SpawnNode<ButtonNode>(id);
                     }
+                    if(nodeType == "BooleanOperatorNode")
+                    {
+                        spawnedNode = SpawnNode<BooleanOperatorNode>(id);
+                    }
+                    if(nodeType == "BooleanDisplayNode")
+                    {
+                        spawnedNode = SpawnNode<BooleanDisplayNode>(id);
+                    }
                     if (nodeType == "TimerNode")
                     {
                         spawnedNode = SpawnNode<TimerNode>(id);
@@ -140,6 +150,10 @@ void NodeManager::SpawnNodesFromFile()
                     if (nodeType == "TCPServerNode")
                     {
                         spawnedNode = SpawnNode<TCPServerNode>(id, tcpServer);
+                    }
+                    if(nodeType == "ToggleNode")
+                    {
+                        spawnedNode = SpawnNode<ToggleNode>(id);
                     }
                 
                     spawnedNode->ConstructFromJSON(val);
@@ -185,8 +199,7 @@ std::vector<std::shared_ptr<Node>> NodeManager::GetSelectedNodes()
     std::vector<ax::NodeEditor::NodeId> selectedNodeIds;
     selectedNodeIds.resize(ax::NodeEditor::GetSelectedObjectCount());
 
-    int nodeCount = ax::NodeEditor::GetSelectedNodes(selectedNodeIds.data(), static_cast<int>(selectedNodeIds.size()));
-
+    ax::NodeEditor::GetSelectedNodes(selectedNodeIds.data(), static_cast<int>(selectedNodeIds.size()));
 
     std::vector<std::shared_ptr<Node>> selectedNodes;
 
@@ -214,7 +227,8 @@ void NodeManager::DuplicateSelected()
         ImVec2 selectedNodeSize = ax::NodeEditor::GetNodeSize(selectedNode->id);
         ImVec2 selectedNodePos = ax::NodeEditor::GetNodePosition(selectedNode->id);
 
-        std::shared_ptr<Node> spawnedNode = SpawnNode(selectedNode);
+        std::shared_ptr<Node> spawnedNode = selectedNode->Clone();
+        nodes.emplace_back(spawnedNode);
         ax::NodeEditor::SetNodePosition(spawnedNode->id, {selectedNodePos.x,selectedNodePos.y+selectedNodeSize.y});
         ax::NodeEditor::SelectNode(spawnedNode->id, true);
     }
@@ -239,31 +253,19 @@ void NodeManager::Update()
 
         ax::NodeEditor::Link(linkInfo.ID, linkInfo.StartPinID, linkInfo.EndPinID, inputPin->GetColorFromType(), 2.0f);
     }
-
     // Handle creation action, returns true if editor want to create new object (node or link)
     if (ax::NodeEditor::BeginCreate(ImColor(255, 255, 255), 2.0f))
     {
-        ax::NodeEditor::PinId inputPinId, outputPinId;
+    ax::NodeEditor::PinId inputPinId, outputPinId;
         if (ax::NodeEditor::QueryNewLink(&outputPinId, &inputPinId))
         {
-            // QueryNewLink returns true if editor want to create new link between pins.
-            //
-            // Link can be created only for two valid pins, it is up to you to
-            // validate if connection make sense. Editor is happy to make any.
-            //
-            // Link always goes from input to output. User may choose to drag
-            // link from output pin or input pin. This determine which pin ids
-            // are valid and which are not:
-            //   * input valid, output invalid - user started to drag new ling from input pin
-            //   * input invalid, output valid - user started to drag new ling from output pin
-            //   * input valid, output valid   - user dragged link over other pin, can be validated
-
             bool accept = false;
             std::shared_ptr<Pin> inputPin = GetPinFromId(inputPinId);
             std::shared_ptr<Pin> outputPin = GetPinFromId(outputPinId);
 
             if(inputPin->pinKind == ax::NodeEditor::PinKind::Input  && outputPin->pinKind == ax::NodeEditor::PinKind::Output)
             {
+
                 bool matchesType  = inputPin->pinType == outputPin->pinType || (inputPin->pinType == Pin::PinType::Any && outputPin->pinType != Pin::PinType::Boolean);
                 bool pinIsntFull = !inputPin->isConnected;
                 if(matchesType && pinIsntFull)
@@ -315,7 +317,14 @@ std::shared_ptr<Pin> NodeManager::GetPinFromId(ax::NodeEditor::PinId pinId)
 {
     for (auto& node : nodes)
     {
-        for(std::shared_ptr<Pin> pin : node->GetPins())
+        for(std::shared_ptr<Pin> pin : node->GetOutputPins())
+        {
+            if(pin->id == pinId)
+            {
+                return pin;
+            }
+        }
+        for(std::shared_ptr<Pin> pin : node->GetInputPins())
         {
             if(pin->id == pinId)
             {

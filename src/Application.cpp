@@ -4,6 +4,9 @@
 #include "Nodes/PrintNode.h"
 #include "Nodes/PrintNode.h"
 #include "Nodes/ButtonNode.h"
+#include "Nodes/ToggleNode.h"
+#include "Nodes/BooleanOperatorNode.h"
+#include "Nodes/BooleanDisplayNode.h"
 #include "Nodes/StringNode.h"
 #include "Nodes/ConcatNode.h"
 #include "Nodes/AddNode.h"
@@ -79,11 +82,6 @@ int Application::Run()
 void Application::DrawTitleBar()
 {
     ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 0, 11 ) );
-
-    static bool isUserDraggingWindow = false;
-    static ImVec2 dragOffset = {0.0f,0.0f};
-
-    
 
     if(ImGui::BeginMainMenuBar())
     {
@@ -404,10 +402,15 @@ std::shared_ptr<Node> Application::DrawNodeSpawnList()
         {
             spawnedNode = nodeManager.SpawnNode<ButtonNode>(0);
         }
+        if (ImGui::MenuItem("Toggle"))
+        {
+            spawnedNode = nodeManager.SpawnNode<ToggleNode>(0);
+        }
         if (ImGui::MenuItem("Timer"))
         {
             spawnedNode =nodeManager.SpawnNode<TimerNode>(0);
         }
+        ImGui::Separator();
         if (ImGui::MenuItem("String"))
         {
             spawnedNode =nodeManager.SpawnNode<StringNode>(0);
@@ -434,6 +437,11 @@ std::shared_ptr<Node> Application::DrawNodeSpawnList()
         {
             spawnedNode =nodeManager.SpawnNode<SubtractNode>(0);
         }
+        if (ImGui::MenuItem("Boolean Operator"))
+        {
+            spawnedNode = nodeManager.SpawnNode<BooleanOperatorNode>(0);
+        }
+            
         ImGui::EndMenu();
     }
 
@@ -441,6 +449,10 @@ std::shared_ptr<Node> Application::DrawNodeSpawnList()
         if (ImGui::MenuItem("Print"))
         {
             spawnedNode =nodeManager.SpawnNode<PrintNode>(0);
+        }
+        if(ImGui::MenuItem("Boolean Display"))
+        {
+            spawnedNode  = nodeManager.SpawnNode<BooleanDisplayNode>(0);
         }
         ImGui::Separator();
         if (ImGui::MenuItem("TCP Client"))
@@ -451,6 +463,7 @@ std::shared_ptr<Node> Application::DrawNodeSpawnList()
         {
             spawnedNode = nodeManager.SpawnNode<TCPServerNode>(0, tcpServer);
         }
+        
         ImGui::EndMenu();
     }
 

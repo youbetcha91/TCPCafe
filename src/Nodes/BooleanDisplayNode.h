@@ -2,10 +2,10 @@
 #include "Nodes/ClonableNode.h"
 #include <Nodes/ClonableNode.h>
 
-class ButtonNode : public ClonableNode<ButtonNode>
+class BooleanDisplayNode : public ClonableNode<BooleanDisplayNode>
 {
 public:
-    ButtonNode(ax::NodeEditor::NodeId id);
+    BooleanDisplayNode(ax::NodeEditor::NodeId id);
     void DrawImpl() final;
     std::string GetNodeTypeName() final;
 };
