@@ -2,7 +2,6 @@
 
 #include <nfd.h>
 
-
 namespace FileDialogue
 {
     void Init()
@@ -20,9 +19,7 @@ namespace FileDialogue
         std::string output = "";
         nfdu8char_t* outPath;
         nfdu8filteritem_t filters[1] = {{ "TCPCafe File", "cafe" }};
-        nfdopendialogu8args_t args;
-        args.filterList = filters;
-        args.filterCount = 1;
+        nfdopendialogu8args_t args {filters, 1, nullptr, {}};
         nfdresult_t result = NFD_OpenDialogU8_With(&outPath, &args);
 
         if (result == NFD_OKAY)
@@ -33,7 +30,6 @@ namespace FileDialogue
             }
             NFD_FreePathU8(outPath);
         }
-        
         return output;
     }
 
@@ -42,16 +38,11 @@ namespace FileDialogue
         std::string output = "";
         nfdu8char_t* outPath;
         nfdu8filteritem_t filters[1] = {{ "TCPCafe File", "cafe" }};
-        nfdsavedialogu8args_t args;
-        args.filterList = filters;
-        args.filterCount = 1;
-        if(defaultName.empty())
-        {
-            args.defaultName = "NetworkNodes.cafe";
-        }else
-        {
-            args.defaultName = defaultName.c_str();
-        }
+
+        std::string defaultFileName = defaultName.empty() ? "NetworkNodes.cafe" : defaultName;
+
+        nfdsavedialogu8args_t args = {filters, 1,nullptr, defaultFileName.c_str(), {}};
+
         nfdresult_t result = NFD_SaveDialogU8_With(&outPath, &args);
 
         if (result == NFD_OKAY)
