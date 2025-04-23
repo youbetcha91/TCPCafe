@@ -8,6 +8,7 @@
 #include "imgui_node_editor.h"
 #include "Nodes/Node.h"
 #include "Nodes/NodeManager.h"
+#include "Window/FileManager.h"
 #include <utility>
 
 namespace ed = ax::NodeEditor;
@@ -33,6 +34,10 @@ private:
     void SendMessageFromServer(const std::string& message);
     void SendMessageFromClient(const std::string& message);
     void UpdateWindowTitle();
+    void StartNewFile();
+    void StartOpenFile();
+    void OpenFile(const std::string& path);
+    void AppWideShortcuts();
     std::shared_ptr<Node> DrawNodeSpawnList();
 private:
     Window window;
@@ -40,19 +45,20 @@ private:
     std::string clientReceive;
     std::string serverSend;
     std::string serverReceive;
-    ImFont* font_ConsolasRegular;
-    ImFont* font_ConsolasBold;
+    ImFont* font_SegoeUIRegularTiny;
+    ImFont* font_SegoeUIRegularSmall;
+    ImFont* font_SegoeUIRegularMedium;
+    ImFont* font_SegoeUIRegularLarge;
     std::unique_ptr<SendMessageWidget> tcpClientSendMessage1;
     std::unique_ptr<SendMessageWidget> tcpClientSendMessage2;
     std::unique_ptr<SendMessageWidget> tcpClientSendMessage3;
-
     std::unique_ptr<SendMessageWidget> tcpServerSendMessage1;
     std::unique_ptr<SendMessageWidget> tcpServerSendMessage2;
     std::unique_ptr<SendMessageWidget> tcpServerSendMessage3;
+    FileManager::Session session;
 
-    MENU_NAME activeMenu;
+    MENU_NAME activeMenu = MENU_NAME::NODE_EDITOR;
 private:
-    std::string activeFileName = "";
     asio::io_context ioContext;
     std::shared_ptr<TCPClient> tcpClient;
     std::shared_ptr<TCPServer> tcpServer;
