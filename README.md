@@ -1,10 +1,21 @@
 # TCPCafe
 ImGUI based tool for testing TCP connections
 
+## Demo
+
+Node Editor View
+![NodeEditorDemo.png](promo/NodeEditorDemo.png "NodeEditorDemo.png")
+
+TCP Server View
+![TCPServerDemo.png](promo/TCPServerDemo.png "TCPServerDemo.png")
+
+
+
 ## Building
 
 ### Generators
-Tested Compilers: MSVC, MinGW
+- Tested Compilers: MinGW
+- MSVC: Known bug that prevents BeginCombo's from working correctly
 
 ### CMake
 1. Create Directory /build
